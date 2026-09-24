@@ -42,5 +42,26 @@ CHIP ALU {
         ng; // 1 if (out < 0),  0 otherwise
 
     PARTS:
-   // Put you code here:
+          // zx: x 是否歸零
+    Mux16(a=x, b=false, sel=zx, out=x1);
+
+    // nx: x 是否反相
+    Not16(in=x1, out=notx);
+    Mux16(a=x1, b=notx, sel=nx, out=x2);
+
+    // zy: y 是否歸零
+    Mux16(a=y, b=false, sel=zy, out=y1);
+
+    // ny: y 是否反相
+    Not16(in=y1, out=noty);
+    Mux16(a=y1, b=noty, sel=ny, out=y2);
+
+    // f=0 做 AND；f=1 做 ADD
+    And16(a=x2, b=y2, out=andResult);
+    Add16(a=x2, b=y2, out=addResult);
+    Mux16(a=andResult, b=addResult, sel=f, out=result);
+
+    // no: 最後結果是否反相
+    Not16(in=result, out=notResult);
+    Mux16(a=result, b=notResult, sel=no, out=out);
 }
