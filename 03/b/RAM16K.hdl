@@ -1,13 +1,9 @@
 // This file is part of www.nand2tetris.org
-// and the book "The Elements of Computing Systems"
-// by Nisan and Schocken, MIT Press.
 // File name: projects/03/b/RAM16K.hdl
 
 /**
- * Memory of 16K registers, each 16 bit-wide. Out holds the value
- * stored at the memory location specified by address. If load==1, then 
- * the in value is loaded into the memory location specified by address 
- * (the loaded value will be emitted to out from the next time step onward).
+ * Memory of 16K registers, each 16 bit-wide.
+ * The chip facilitates read/write operations.
  */
 
 CHIP RAM16K {
@@ -15,19 +11,52 @@ CHIP RAM16K {
     OUT out[16];
 
     PARTS:
+
+    // address[12..13] 決定要寫入哪一顆 RAM4K
     DMux4Way(
         in=load,
         sel=address[12..13],
-        a=l0, b=l1, c=l2, d=l3
+        a=load0,
+        b=load1,
+        c=load2,
+        d=load3
     );
 
-    RAM4K(in=in, load=l0, address=address[0..11], out=r0);
-    RAM4K(in=in, load=l1, address=address[0..11], out=r1);
-    RAM4K(in=in, load=l2, address=address[0..11], out=r2);
-    RAM4K(in=in, load=l3, address=address[0..11], out=r3);
+    // 四顆 RAM4K = 16K
+    RAM4K(
+        in=in,
+        load=load0,
+        address=address[0..11],
+        out=out0
+    );
 
+    RAM4K(
+        in=in,
+        load=load1,
+        address=address[0..11],
+        out=out1
+    );
+
+    RAM4K(
+        in=in,
+        load=load2,
+        address=address[0..11],
+        out=out2
+    );
+
+    RAM4K(
+        in=in,
+        load=load3,
+        address=address[0..11],
+        out=out3
+    );
+
+    // address[12..13] 決定要讀哪一顆 RAM4K
     Mux4Way16(
-        a=r0, b=r1, c=r2, d=r3,
+        a=out0,
+        b=out1,
+        c=out2,
+        d=out3,
         sel=address[12..13],
         out=out
     );
