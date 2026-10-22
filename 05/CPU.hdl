@@ -1,43 +1,175 @@
 // This file is part of www.nand2tetris.org
-// and the book "The Elements of Computing Systems"
-// by Nisan and Schocken, MIT Press.
 // File name: projects/05/CPU.hdl
-
-/**
- * The Hack CPU (Central Processing unit), consisting of an ALU,
- * two registers named A and D, and a program counter named PC.
- * The CPU is designed to fetch and execute instructions written in 
- * the Hack machine language. In particular, functions as follows:
- * Executes the inputted instruction according to the Hack machine 
- * language specification. The D and A in the language specification
- * refer to CPU-resident registers, while M refers to the external
- * memory location addressed by A, i.e. to Memory[A]. The inM input 
- * holds the value of this location. If the current instruction needs 
- * to write a value to M, the value is placed in outM, the address 
- * of the target location is placed in the addressM output, and the 
- * writeM control bit is asserted. (When writeM==0, any value may 
- * appear in outM). The outM and writeM outputs are combinational: 
- * they are affected instantaneously by the execution of the current 
- * instruction. The addressM and pc outputs are clocked: although they 
- * are affected by the execution of the current instruction, they commit 
- * to their new values only in the next time step. If reset==1 then the 
- * CPU jumps to address 0 (i.e. pc is set to 0 in next time step) rather 
- * than to the address resulting from executing the current instruction. 
- */
 
 CHIP CPU {
 
-    IN  inM[16],         // M value input  (M = contents of RAM[A])
-        instruction[16], // Instruction for execution
-        reset;           // Signals whether to re-start the current
-                         // program (reset==1) or continue executing
-                         // the current program (reset==0).
+    IN  inM[16],
+        instruction[16],
+        reset;
 
-    OUT outM[16],        // M value output
-        writeM,          // Write to M? 
-        addressM[15],    // Address in data memory (of M)
-        pc[15];          // address of next instruction
+    OUT outM[16],
+        writeM,
+        addressM[15],
+        pc[15];
 
     PARTS:
-    // Put your code here:
+
+    // ============================================================
+    // 1. 判斷指令種類
+    // instruction[15] = 0 -> A-instruction
+    // instruction[15] = 1 -> C-instruction
+    // ============================================================
+
+    Not(in=instruction[15], out=isA);
+
+
+    // ============================================================
+    // 2. A Register
+    //
+    // A-instruction:
+    //     A = instruction
+    //
+    // C-instruction 且 destination A=1:
+    //     A = ALU output
+    //
+    // instruction[5] = d1 = A destination bit
+    // ============================================================
+
+    And(a=instruction[15], b=instruction[5], out=loadAFromC);
+    Or(a=isA, b=loadAFromC, out=loadA);
+
+    // A-instruction 時選 instruction
+    // C-instruction 時選 ALU output
+    Mux16(a=aluOut, b=instruction, sel=isA, out=aIn);
+
+    ARegister(
+        in=aIn,
+        load=loadA,
+        out=aOut,
+        out[0..14]=addressM
+    );
+
+
+    // ============================================================
+    // 3. D Register
+    //
+    // C-instruction:
+    // instruction[4] = d2 = D destination bit
+    // ============================================================
+
+    And(a=instruction[15], b=instruction[4], out=loadD);
+
+    DRegister(
+        in=aluOut,
+        load=loadD,
+        out=dOut
+    );
+
+
+    // ============================================================
+    // 4. ALU 的 Y 輸入
+    //
+    // a-bit = instruction[12]
+    //
+    // a=0 -> 使用 A
+    // a=1 -> 使用 M (inM)
+    // ============================================================
+
+    Mux16(
+        a=aOut,
+        b=inM,
+        sel=instruction[12],
+        out=aluY
+    );
+
+
+    // ============================================================
+    // 5. ALU
+    //
+    // D -> x
+    // A/M -> y
+    //
+    // instruction[11..6] = c1..c6
+    // ============================================================
+
+    ALU(
+        x=dOut,
+        y=aluY,
+
+        zx=instruction[11],
+        nx=instruction[10],
+        zy=instruction[9],
+        ny=instruction[8],
+        f=instruction[7],
+        no=instruction[6],
+
+        out=aluOut,
+        out=outM,
+        zr=zr,
+        ng=ng
+    );
+
+
+    // ============================================================
+    // 6. writeM
+    //
+    // instruction[3] = d3 = M destination bit
+    //
+    // 只有 C-instruction 才能寫入 M
+    // ============================================================
+
+    And(
+        a=instruction[15],
+        b=instruction[3],
+        out=writeM
+    );
+
+
+    // ============================================================
+    // 7. Jump logic
+    //
+    // instruction[2] = j1 -> JLT
+    // instruction[1] = j2 -> JEQ
+    // instruction[0] = j3 -> JGT
+    //
+    // ng = ALU output < 0
+    // zr = ALU output = 0
+    // positive = ALU output > 0
+    // ============================================================
+
+    Not(in=ng, out=notNg);
+    Not(in=zr, out=notZr);
+
+    And(a=notNg, b=notZr, out=positive);
+
+    And(a=instruction[2], b=ng, out=jumpNeg);
+    And(a=instruction[1], b=zr, out=jumpZero);
+    And(a=instruction[0], b=positive, out=jumpPos);
+
+    Or(a=jumpNeg, b=jumpZero, out=jumpNegOrZero);
+    Or(a=jumpNegOrZero, b=jumpPos, out=jumpCondition);
+
+    // A-instruction 不可以觸發 jump
+    And(
+        a=instruction[15],
+        b=jumpCondition,
+        out=jump
+    );
+
+
+    // ============================================================
+    // 8. Program Counter
+    //
+    // jump=1  -> PC = A
+    // jump=0  -> PC++
+    // reset=1 -> PC = 0
+    // ============================================================
+
+    PC(
+        in=aOut,
+        load=jump,
+        inc=true,
+        reset=reset,
+        out[0..14]=pc
+    );
 }

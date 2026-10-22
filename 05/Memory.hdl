@@ -27,5 +27,75 @@ CHIP Memory {
     OUT out[16];
 
     PARTS:
-    // Put your code here:
+
+    // address[14] = 0
+    // -> RAM (0 ~ 16383)
+    //
+    // address[14] = 1
+    // -> Screen / Keyboard 區域
+
+    DMux(
+        in=load,
+        sel=address[14],
+        a=loadRAM,
+        b=loadIO
+    );
+
+    // -------------------------
+    // RAM16K
+    // -------------------------
+    RAM16K(
+        in=in,
+        load=loadRAM,
+        address=address[0..13],
+        out=ramOut
+    );
+
+
+    // address[14]=1 之後
+    // address[13]=0 -> Screen
+    // address[13]=1 -> Keyboard
+    DMux(
+        in=loadIO,
+        sel=address[13],
+        a=loadScreen,
+        b=loadKeyboard
+    );
+
+
+    // -------------------------
+    // Screen
+    // -------------------------
+    Screen(
+        in=in,
+        load=loadScreen,
+        address=address[0..12],
+        out=screenOut
+    );
+
+
+    // -------------------------
+    // Keyboard
+    // Keyboard 是唯讀，所以沒有 load
+    // -------------------------
+    Keyboard(
+        out=keyboardOut
+    );
+
+
+    // Screen / Keyboard 選輸出
+    Mux16(
+        a=screenOut,
+        b=keyboardOut,
+        sel=address[13],
+        out=ioOut
+    );
+
+    // RAM / I/O 選最終輸出
+    Mux16(
+        a=ramOut,
+        b=ioOut,
+        sel=address[14],
+        out=out
+    );
 }
