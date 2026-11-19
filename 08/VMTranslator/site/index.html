@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b101b">
+  <meta name="description" content="在瀏覽器中將 nand2tetris VM 程式翻譯成 Hack 組合語言。支援第 7、8 章完整指令集。">
+  <title>VM Lab — nand2tetris 線上轉譯器</title>
+  <link rel="stylesheet" href="./style.css">
+  <script type="module" src="./app.js"></script>
+</head>
+<body>
+  <div class="page-glow" aria-hidden="true"></div>
+  <header class="topbar wrap">
+    <a class="brand" href="#top" aria-label="VM Lab 首頁"><span class="brand-mark">V<span>M</span></span><span>VM LAB <small>/ nand2tetris</small></span></a>
+    <nav aria-label="主選單">
+      <a href="#workspace">轉譯工作區</a>
+      <a href="#guide">使用說明</a>
+      <a class="nav-source" href="https://github.com/ChunYang0808/_co/tree/main/08/VMTranslator" target="_blank" rel="noopener noreferrer">GitHub 專案 <span aria-hidden="true">↗</span></a>
+    </nav>
+  </header>
+
+  <main id="top">
+    <section class="hero wrap" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <div class="eyebrow"><span class="live-dot"></span> PROJECT 07 / 08 <span class="eyebrow-line"></span> BROWSER-BASED TOOL</div>
+        <h1 id="hero-title">讓 VM 指令<br>變成 <em>Hack</em> 語言<span class="hero-period">.</span></h1>
+        <p>把堆疊運算、記憶體存取與函式呼叫，翻譯成可以交給 nand2tetris CPU Emulator 執行的組合語言。貼上程式、按下轉譯，結果立即出現。</p>
+        <div class="hero-actions"><a class="button primary" href="#workspace">開始轉譯 <span aria-hidden="true">↘</span></a><span class="hero-note">純前端運作 · 不上傳程式碼</span></div>
+      </div>
+      <div class="hero-visual" aria-hidden="true">
+        <div class="orbit orbit-a"></div><div class="orbit orbit-b"></div>
+        <div class="visual-card visual-in"><small>INPUT / VM</small><code>push constant 7<br>push constant 8<br><strong>add</strong></code></div>
+        <div class="visual-core">VM <span>→</span> ASM</div>
+        <div class="visual-card visual-out"><small>OUTPUT / HACK</small><code>@7<br>D=A<br>@SP<br><strong>A=M</strong></code></div>
+      </div>
+    </section>
+
+    <section class="work-section wrap" id="workspace" aria-labelledby="workspace-title">
+      <div class="section-heading"><div><span class="section-kicker">THE WORKSPACE</span><h2 id="workspace-title">你的 VM 工作台</h2></div><p>支援單檔與多檔案程式，全部在此頁面完成。</p></div>
+      <div class="workspace-shell" id="drop-zone">
+        <div class="workspace-toolbar">
+          <div class="toolbar-left"><span class="toolbar-symbol" aria-hidden="true">⌘</span><strong>TRANSLATOR</strong><span class="toolbar-divider"></span><span id="file-count">1 個檔案</span></div>
+          <div class="toolbar-right"><label for="bootstrap">Bootstrap</label><select id="bootstrap" aria-label="啟動程式模式"><option value="auto">自動偵測</option><option value="on">強制加入</option><option value="off">不加入</option></select><button class="icon-button" id="clear-button" type="button" title="清空工作區" aria-label="清空工作區">↺</button></div>
+        </div>
+        <div class="workspace-tools">
+          <div class="file-actions"><button type="button" id="add-file" class="subtle-button">＋ 新增 VM 檔</button><button type="button" id="import-files" class="subtle-button">匯入檔案</button><button type="button" id="import-folder" class="subtle-button">匯入資料夾</button></div>
+          <div class="example-actions"><span>快速試用</span><button type="button" data-sample="simple">SimpleAdd</button><button type="button" data-sample="fibonacci">FibonacciElement</button></div>
+        </div>
+        <input id="files-input" class="visually-hidden" type="file" accept=".vm" multiple>
+        <input id="folder-input" class="visually-hidden" type="file" webkitdirectory multiple>
+        <div class="editors">
+          <section class="editor-panel" aria-labelledby="input-heading"><div class="panel-header"><div><span class="panel-index">01</span><h3 id="input-heading">VM 原始碼</h3></div><span class="panel-type">.vm</span></div><div class="tabs-row"><div id="file-tabs" class="file-tabs" role="tablist" aria-label="VM 檔案"></div></div><div class="code-area"><div id="input-lines" class="line-numbers" aria-hidden="true">1</div><textarea id="vm-input" spellcheck="false" autocomplete="off" autocapitalize="off" aria-label="VM 原始碼編輯器"></textarea></div><div class="panel-footer"><span id="input-status">就緒</span><span id="input-lines-count">1 行</span></div></section>
+          <section class="editor-panel output-panel" aria-labelledby="output-heading"><div class="panel-header"><div><span class="panel-index">02</span><h3 id="output-heading">Hack 組合語言</h3></div><span class="panel-type">.asm</span></div><div class="output-actions"><span id="output-name">等待轉譯</span><div><button type="button" id="copy-button" disabled>複製</button><button type="button" id="download-button" disabled>下載 .asm</button></div></div><div class="code-area"><div id="output-lines" class="line-numbers" aria-hidden="true">1</div><textarea id="asm-output" spellcheck="false" readonly aria-label="Hack 組合語言結果" placeholder="按下「轉譯成 ASM」後，結果會顯示在這裡。"></textarea></div><div class="panel-footer"><span id="output-status">尚未產生結果</span><span id="output-lines-count">0 行</span></div></section>
+        </div>
+        <div class="workspace-bottom"><div id="message" class="message" role="status" aria-live="polite"><span class="message-icon" aria-hidden="true">●</span><span id="message-text">準備好了。可以直接編輯，或先載入範例試試。</span></div><button type="button" id="translate-button" class="button primary">轉譯成 ASM <span aria-hidden="true">↗</span></button></div>
+        <div id="drop-overlay" class="drop-overlay" aria-hidden="true"><div>將 .vm 檔案放到這裡</div></div>
+      </div>
+      <p class="workspace-caption">檔案只在你的瀏覽器中處理。轉譯結果可下載為 <code>.asm</code>，再以 nand2tetris CPU Emulator 測試。</p>
+    </section>
+
+    <section class="guide wrap" id="guide" aria-labelledby="guide-title"><div class="guide-header"><span class="section-kicker">HOW IT WORKS</span><h2 id="guide-title">從程式到執行，只要三步</h2></div><div class="guide-grid"><article><span class="step-number">01</span><div class="step-icon">{ }</div><h3>輸入 VM 程式</h3><p>直接編輯、匯入多個 .vm 檔案，或使用範例。多檔案程式會合併翻譯。</p></article><article><span class="step-number">02</span><div class="step-icon">⚙</div><h3>產生 Hack ASM</h3><p>解析指令、處理函式與標籤作用域，必要時自動加入 Sys.init 啟動碼。</p></article><article><span class="step-number">03</span><div class="step-icon">↓</div><h3>下載並驗證</h3><p>下載 .asm，搭配課程的 .tst 在官方 CPU Emulator 執行。</p></article></div></section>
+  </main>
+  <footer class="footer wrap"><span class="footer-brand">VM LAB <span>© 2026</span></span><span>nand2tetris · Chapter 07 + 08</span><a href="https://www.nand2tetris.org/project08" target="_blank" rel="noopener noreferrer">課程專案 ↗</a></footer>
+</body>
+</html>
