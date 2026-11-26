@@ -12,7 +12,7 @@ test('all Project 11 files match the Python compiler output',()=>{
   for(const dir of readdirSync(root,{withFileTypes:true}).filter(x=>x.isDirectory())){
     for(const name of readdirSync(join(root,dir.name)).filter(x=>x.endsWith('.jack'))){
       const path=join(root,dir.name,name);
-      assert.equal(compileJack(readFileSync(path,'utf8')),readFileSync(path.replace(/\.jack$/,'.vm'),'utf8'),path);
+      assert.equal(compileJack(readFileSync(path,'utf8')),readFileSync(path.replace(/\.jack$/,'.vm'),'utf8').replace(/\r\n/g,'\n'),path);
       count++;
     }
   }
