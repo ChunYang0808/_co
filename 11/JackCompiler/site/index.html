@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b101b">
+  <meta name="description" content="在瀏覽器中將 nand2tetris Jack 程式編譯為 VM 指令，支援 Project 11。">
+  <title>Jack Lab — Jack 語言編譯器</title>
+  <link rel="stylesheet" href="./style.css">
+  <script type="module" src="./app.js"></script>
+</head>
+<body>
+  <div class="page-glow" aria-hidden="true"></div>
+  <header class="topbar wrap">
+    <a class="brand" href="#top" aria-label="Jack Lab 首頁"><span class="brand-mark">J<span>K</span></span><span>JACK LAB <small>/ nand2tetris</small></span></a>
+    <nav aria-label="主選單"><a href="#workspace">編譯工作區</a><a href="#guide">使用說明</a><a class="nav-source" href="https://github.com/ChunYang0808/_co/tree/main/11" target="_blank" rel="noopener noreferrer">GitHub 專案</a></nav>
+  </header>
+  <main id="top">
+    <section class="hero wrap" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <div class="eyebrow"><span class="live-dot"></span> PROJECT 11 <span class="eyebrow-line"></span> BROWSER COMPILER</div>
+        <h1 id="hero-title">讓 Jack 程式<br>變成 <em>VM</em> 指令<span class="hero-period">.</span></h1>
+        <p>從詞彙解析、符號表到 VM 程式碼產生。輸入 Jack 程式、編譯、下載結果，再交給 nand2tetris VM Emulator 執行。</p>
+        <div class="hero-actions"><a class="button primary" href="#workspace">開始編譯</a><span class="hero-note">純前端運作 · 程式碼不會上傳</span></div>
+      </div>
+      <div class="hero-visual" aria-hidden="true"><div class="orbit orbit-a"></div><div class="orbit orbit-b"></div><div class="visual-card visual-in"><small>INPUT / JACK</small><code>class Main {<br> function void main() {<br> <strong>do</strong> Output.printInt(7);<br> return;<br> }<br>}</code></div><div class="visual-core">Jack <span>→</span> VM</div><div class="visual-card visual-out"><small>OUTPUT / VM</small><code>function Main.main 0<br>push constant 7<br><strong>call Output.printInt 1</strong><br>pop temp 0<br>push constant 0<br>return</code></div></div>
+    </section>
+    <section class="work-section wrap" id="workspace" aria-labelledby="workspace-title">
+      <div class="section-heading"><div><span class="section-kicker">THE WORKSPACE</span><h2 id="workspace-title">Jack 編譯工作台</h2></div><p>支援單檔與多檔案專案，分別產生對應的 VM 檔。</p></div>
+      <div class="workspace-shell" id="drop-zone">
+        <div class="workspace-toolbar"><div class="toolbar-left"><span class="toolbar-symbol">{ }</span><strong>COMPILER</strong><span class="toolbar-divider"></span><span id="file-count">1 個檔案</span></div><div class="toolbar-right"><button class="icon-button" id="clear-button" type="button" title="清空工作區" aria-label="清空工作區">↺</button></div></div>
+        <div class="workspace-tools"><div class="file-actions"><button type="button" id="add-file" class="subtle-button">＋ 新增 Jack 檔</button><button type="button" id="import-files" class="subtle-button">匯入檔案</button><button type="button" id="import-folder" class="subtle-button">匯入資料夾</button></div><div class="example-actions"><span>快速試用</span><button type="button" data-sample="seven">Seven</button><button type="button" data-sample="array">陣列</button><button type="button" data-sample="square">物件</button></div></div>
+        <input id="files-input" class="visually-hidden" type="file" accept=".jack" multiple><input id="folder-input" class="visually-hidden" type="file" webkitdirectory multiple>
+        <div class="editors">
+          <section class="editor-panel" aria-labelledby="input-heading"><div class="panel-header"><div><span class="panel-index">JACK</span><h3 id="input-heading">Jack 原始碼</h3></div><span class="panel-type">.jack</span></div><div class="tabs-row"><div id="file-tabs" class="file-tabs" role="tablist" aria-label="Jack 檔案"></div></div><div class="code-area"><div id="input-lines" class="line-numbers" aria-hidden="true">1</div><textarea id="jack-input" spellcheck="false" autocomplete="off" autocapitalize="off" aria-label="Jack 原始碼編輯器"></textarea></div><div class="panel-footer"><span id="input-status">就緒</span><span id="input-lines-count">1 行</span></div></section>
+          <section class="editor-panel output-panel" aria-labelledby="output-heading"><div class="panel-header"><div><span class="panel-index">VM</span><h3 id="output-heading">VM 程式碼</h3></div><span class="panel-type">.vm</span></div><div class="output-actions"><span id="output-name">等待編譯</span><div><button type="button" id="copy-button" disabled>複製</button><button type="button" id="download-button" disabled>下載此檔</button><button type="button" id="download-all-button" disabled>下載全部</button></div></div><div class="code-area"><div id="output-lines" class="line-numbers" aria-hidden="true">1</div><textarea id="vm-output" spellcheck="false" readonly aria-label="VM 編譯結果" placeholder="按下「編譯成 VM」後，結果會顯示在這裡。"></textarea></div><div class="panel-footer"><span id="output-status">尚未產生結果</span><span id="output-lines-count">0 行</span></div></section>
+        </div>
+        <div class="workspace-bottom"><div id="message" class="message" role="status" aria-live="polite"><span class="message-icon" aria-hidden="true">●</span><span id="message-text">可以直接編輯，或先載入範例。</span></div><button type="button" id="compile-button" class="button primary">編譯成 VM</button></div><div id="drop-overlay" class="drop-overlay" aria-hidden="true"><div>將 .jack 檔案放到這裡</div></div>
+      </div><p class="workspace-caption">程式碼只在瀏覽器中處理。下載的 <code>.vm</code> 可交給 nand2tetris VM Emulator 測試。</p>
+    </section>
+    <section class="guide wrap" id="guide"><div class="guide-header"><span class="section-kicker">HOW IT WORKS</span><h2>從 Jack 到 VM</h2></div><div class="guide-grid"><article><div class="step-icon">{ }</div><h3>撰寫或匯入</h3><p>編輯單個 Jack 檔，或匯入整個 Project 11 範例資料夾。</p></article><article><div class="step-icon">⚙</div><h3>編譯並檢查</h3><p>解析類別、子程式、運算式與敘述；錯誤會指出檔名及行號。</p></article><article><div class="step-icon">↓</div><h3>下載並執行</h3><p>各來源檔對應一個 VM 檔。多檔專案可一次下載全部檔案。</p></article></div></section>
+  </main>
+  <footer class="footer wrap"><span class="footer-brand">JACK LAB <span>© 2026</span></span><span>nand2tetris · Project 11</span><a href="https://www.nand2tetris.org/project11" target="_blank" rel="noopener noreferrer">官方 Project 11</a></footer>
+</body>
+</html>
